@@ -15,6 +15,8 @@
  */
 
 #include QMK_KEYBOARD_H
+#include "rgb_matrix.h"       // for rgb_matrix_indicators_advanced_user
+#include "quantum/color.h"
 
 #ifdef AUDIO_ENABLE
 #    include "muse.h"
@@ -158,3 +160,85 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 //   }
 //   return true;
 // }
+
+// A small helper to get LED index from row/col:
+
+
+#define IDX(r,c) g_led_config.matrix_co[(r)][(c)]
+
+#define RGB(b, g, r)   (rgb_t){ (r), (g), (b) }
+
+#define BCK RGB(0x00, 0x00, 0x00)
+#define BLU RGB(0x00, 0x00, 0xFF)
+#define GRN RGB(0x00, 0xFF, 0x00)
+#define RED RGB(0xFF, 0x00, 0x00)
+#define CYN RGB(0x00, 0xFF, 0xFF)
+#define YLW RGB(0xFF, 0xFF, 0x00)
+#define MAG RGB(0xFF, 0x00, 0xFF)
+
+// A fully QMK-native rgb_t grid:
+static const rgb_t layer_colors[][MATRIX_ROWS][MATRIX_COLS] = {
+  /* _WINDOWS, _MAC, _GAMING: all off */
+  [_WINDOWS] = {
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK },
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK },
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK },
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK }
+  },
+  [_MAC] = {
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK },
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK },
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK },
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK }
+  },
+  [_GAMING] = {
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK },
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK },
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK },
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK }
+  },
+
+  /* _LOWER: top row BLUE, F-rows GREEN */
+  [_LOWER] = {
+    { BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU },
+    { GRN, GRN, GRN, GRN, GRN, BCK, BCK, BCK, BCK, BCK, BCK, BCK },
+    { GRN, GRN, GRN, GRN, GRN, BCK, BCK, BCK, BCK, BCK, BCK, BCK },
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK }
+  },
+
+  /* _RAISE: numbers BLUE, arrows RED, media CYAN */
+  [_RAISE] = {
+    { BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU },
+    { BCK, BCK, BCK, BCK, BCK, BCK, RED, RED, RED, RED, BCK, BCK },
+    { BCK, BCK, BCK, BCK, BCK, BCK, CYN, CYN, CYN, CYN, BCK, BCK },
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK }
+  },
+
+  /* _ADJUST: row1 YELLOW, row2 MAGENTA */
+  [_ADJUST] = {
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK },
+    { YLW, YLW, YLW, YLW, YLW, YLW, BCK, BCK, BCK, BCK, BCK, BCK },
+    { MAG, MAG, MAG, MAG, MAG, MAG, BCK, BCK, BCK, BCK, BCK, BCK },
+    { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK }
+  },
+};
+
+// Advanced indicator callback: only iterates within [led_min..led_max)
+bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
+  uint8_t layer = biton32(layer_state);
+
+  // paint our per-layer grid
+  for (uint8_t r = 0; r < MATRIX_ROWS; r++) {
+    for (uint8_t c = 0; c < MATRIX_COLS; c++) {
+      uint8_t idx = IDX(r,c);
+      if (idx < led_min || idx >= led_max) continue;
+      rgb_t col = layer_colors[layer][r][c];
+      if (col.r || col.g || col.b) {
+        rgb_matrix_set_color(idx, col.r, col.g, col.b);
+      }
+    }
+  }
+
+  // return false to stop any keyboard-level indicators
+  return false;
+}
