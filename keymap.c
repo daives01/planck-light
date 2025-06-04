@@ -17,6 +17,8 @@
 #include QMK_KEYBOARD_H
 #include "rgb_matrix.h"       // for rgb_matrix_indicators_advanced_user
 #include "colors.h"
+#include "quantum.h"
+#include "os_detection.h"
 
 enum planck_layers {
   _WINDOWS,
@@ -32,8 +34,8 @@ enum planck_layers {
 #define RAISE MO(_RAISE)
 
 #define WINDOWS PDF(_WINDOWS)
-#define MAC PDF(_MAC)
-#define GAMING PDF(_GAMING)
+#define MAC DF(_MAC)
+#define GAMING DF(_GAMING)
 
 static bool caps_active = false;
 
@@ -51,14 +53,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |------+------+------+------+------+------+------+------+------+------+------+------|
  * | Shift|   Z  |   X  |   C  |   V  |   B  |   N  |   M  |   ,  |   .  |   /  |Shift |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * | Esc  | Ctrl | GUI  | Alt  |Lower |    Space    |Raise | Back | GUI  | Ctrl | Enter|
+ * | Esc  | Alt  | GUI  | Ctrl |Lower |    Space    |Raise | Back | Ctrl | GUI  | Enter|
  * `-----------------------------------------------------------------------------------'
  */
 [_WINDOWS] = LAYOUT_planck_grid(
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_EQL,
     KC_CAPS,  KC_A, MT(MOD_LALT, KC_S), MT(MOD_LGUI, KC_D), MT(MOD_LCTL, KC_F), KC_G, KC_H,  MT(MOD_RCTL, KC_J), MT(MOD_RGUI, KC_K), MT(MOD_RALT, KC_L),    KC_SCLN, KC_QUOT,
     KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,
-    KC_ESC, KC_LCTL, KC_LGUI, KC_LALT, LOWER,   KC_SPC,  KC_SPC,  RAISE,   KC_BSPC, KC_RGUI, KC_RCTL, KC_ENT  
+    KC_ESC, KC_LALT, KC_LGUI, KC_LCTL, LOWER,   KC_SPC,  KC_SPC,  RAISE,   KC_BSPC, KC_RCTL, KC_RGUI, KC_ENT  
 ),
 
 /* Mac 
@@ -69,14 +71,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |------+------+------+------+------+------+------+------+------+------+------+------|
  * | Shift|   Z  |   X  |   C  |   V  |   B  |   N  |   M  |   ,  |   .  |   /  |Shift |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
- * | Esc  | Ctrl | Alt  | GUI  |Lower |    Space    |Raise | Back | GUI  | Alt  | Enter|
+ * | Esc  | Ctrl | Opt  | Cmd  |Lower |    Space    |Raise | Back | Cmd  | Opt  | Enter|
  * `-----------------------------------------------------------------------------------'
  */
 [_MAC] = LAYOUT_planck_grid(
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_EQL,
     KC_CAPS,  KC_A, MT(MOD_LCTL, KC_S), MT(MOD_LALT, KC_D), MT(MOD_LGUI, KC_F), KC_G, KC_H,  MT(MOD_RGUI, KC_J), MT(MOD_RALT, KC_K), MT(MOD_RCTL, KC_L),    KC_SCLN, KC_QUOT,
     KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, KC_RSFT,
-    KC_ESC, KC_LALT, KC_LGUI, KC_DEL,  LOWER,   KC_SPC,  KC_SPC,  RAISE,   KC_BSPC, KC_RGUI, KC_RALT, KC_ENT  
+    KC_ESC, KC_LCTL, KC_LALT, KC_LGUI,  LOWER,   KC_SPC,  KC_SPC,  RAISE,   KC_BSPC, KC_RGUI, KC_RALT, KC_ENT  
 ),
 
 /* Gaming
@@ -158,6 +160,24 @@ layer_state_t layer_state_set_user(layer_state_t state) {
   return update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
 }
 
+void keyboard_post_init_user(void) {
+    set_single_persistent_default_layer(_WINDOWS);
+}
+
+// Called once when OS_DETECTION_SINGLE_REPORT sees a stable result
+bool process_detected_host_os_user(os_variant_t detected_os) {
+    switch (detected_os) {
+        case OS_MACOS:
+        case OS_IOS:
+            set_single_persistent_default_layer(_MAC);
+            break;
+        default:
+            set_single_persistent_default_layer(_WINDOWS);
+            break;
+    }
+    return true;
+}
+
 #define IDX(r,c) g_led_config.matrix_co[(r)][(c)]
 
 static const rgb_t layer_colors[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -183,17 +203,17 @@ static const rgb_t layer_colors[][MATRIX_ROWS][MATRIX_COLS] = {
 },
 
 [_LOWER] = {
-    { BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU },
+    { WHT, CYA, CYA, CYA, CYA, CYA, MAG, MAG, MAG, MAG, MAG, WHT },
     { BCK, RED, RED, RED, RED, RED, BCK, BCK, BCK, BCK, BCK, BCK },
     { BCK, RED, RED, RED, RED, RED, BCK, BCK, BCK, BCK, BCK, BCK },
     { BCK, RED, RED, BCK, WHT, BCK, BCK, BCK, BCK, BCK, BCK, BCK }
 },
 
 [_RAISE] = {
-    { BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU, BLU },
+    { WHT, CYA, CYA, CYA, CYA, CYA, MAG, MAG, MAG, MAG, MAG, WHT },
     { BCK, RED, RED, RED, RED, RED, CYA, CYA, CYA, CYA, BCK, BCK },
     { BCK, RED, RED, RED, RED, RED, PUP, PUP, PUP, PUP, BCK, BCK },
-    { BCK, RED, RED, BCK, BLU, BCK, BCK, WHT, BCK, BCK, BCK, BCK }
+    { BCK, RED, RED, BCK, BLU, BCK, BCK, WHT, PUP, BCK, BCK, BCK }
 },
 
 [_ADJUST] = {
