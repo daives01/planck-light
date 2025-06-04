@@ -165,7 +165,7 @@ static const rgb_t layer_colors[][MATRIX_ROWS][MATRIX_COLS] = {
   { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK },
   { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK },
   { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK },
-  { BCK, BCK, BCK, BCK, BLK, BLK, BCK, BCK, BCK, BCK, BCK, BCK }
+  { BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK, BCK }
 },
 
 [_MAC] = {
